@@ -1,5 +1,9 @@
 import 'package:apis_app/app_button.dart';
+import 'package:apis_app/base_client.dart';
+import 'package:apis_app/user.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -9,45 +13,51 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late String stringResponse;
+  late Map mapResponse;
+  late Map dataResponse;
+  late List listResponse;
+
+  Future apiCall() async {
+    http.Response response;
+    response = await http.get(Uri.parse('https://reqres.in/api/users?page=2'));
+    if (response.statusCode == 200) {
+      setState(() {
+        // stringResponse = response.body;
+        mapResponse = json.decode(response.body);
+        listResponse = mapResponse['data'];
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    apiCall();
+    stringResponse = '';
+    mapResponse = {};
+    dataResponse = {};
+    listResponse = [];
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E),
-      body: SafeArea(
-          child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const FlutterLogo(
-              size: 72,
-            ),
-            AppButton(
-              operation: 'GET',
-              description: 'Fetch Users',
-              operationColor: Colors.lightGreen,
-              onPressed: () {},
-            ),
-            AppButton(
-              operation: 'POST',
-              description: 'Add User',
-              operationColor: Colors.lightGreen,
-              onPressed: () {},
-            ),
-            AppButton(
-              operation: 'PUT',
-              description: 'Edit User',
-              operationColor: Colors.lightGreen,
-              onPressed: () {},
-            ),
-            AppButton(
-              operation: 'DEL',
-              description: 'Delete User',
-              operationColor: Colors.lightGreen,
-              onPressed: () {},
-            ),
-          ],
-        ),
-      )),
-    );
+        body: ListView.builder(
+      itemBuilder: (context, index) {
+        return Container(
+          child: Column(
+            children: [
+              Image.network(listResponse[index]['avatar']),
+              Text(listResponse[index]['id'].toString()),
+              Text(listResponse[index]['email'].toString()),
+              Text(listResponse[index]['first_name'].toString()),
+              Text(listResponse[index]['last_name'].toString()),
+            ],
+          ),
+        );
+      },
+      itemCount: listResponse == null ? 0 : listResponse.length,
+    ));
   }
 }
